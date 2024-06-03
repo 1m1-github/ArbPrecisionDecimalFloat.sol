@@ -26,7 +26,14 @@ library ArbPrecisionDecimalFloat {
         DecimalFloat memory out = DecimalFloat(a.c * b.c, a.q + b.q);
         return normalize(out, PRECISION, false);
     }
-    function inverse(DecimalFloat memory a, uint PRECISION) external returns (DecimalFloat memory) {}
+    function inverse(DecimalFloat memory a, uint PRECISION) external returns (DecimalFloat memory) {
+        int precision_m_aq = int(PRECISION) - a.q;
+        if (precision_m_aq < 0) revert("precision_m_aq < 0");
+        
+        precision_m_aq = int(10 ** uint(precision_m_aq));
+        DecimalFloat memory out = DecimalFloat(precision_m_aq / a.c, -int(PRECISION));
+        return normalize(out, PRECISION, false);
+    }
     function exp(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
     function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
     function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
