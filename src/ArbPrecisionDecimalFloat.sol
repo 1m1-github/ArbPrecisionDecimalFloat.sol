@@ -10,10 +10,21 @@ library ArbPrecisionDecimalFloat {
         int c;
         int q;
     }
-
+    
+    
     // todo memory, calldata?
-    function add(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {}
-    function negate(DecimalFloat memory a) external returns (DecimalFloat memory) {}
+    function add(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {
+        int ca = addHelper(a, b);
+        int cb = addHelper(b, a);
+        
+        int q = signedMin(a.q, b.q);
+        
+        DecimalFloat memory out = DecimalFloat(ca + cb, q);
+        return normalize(out, PRECISION, false);
+    }
+    function negate(DecimalFloat memory a) external returns (DecimalFloat memory) {
+        
+    }
     function multiply(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {}
     function inverse(DecimalFloat memory a, uint PRECISION) external returns (DecimalFloat memory) {}
     function exp(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
@@ -22,8 +33,16 @@ library ArbPrecisionDecimalFloat {
     function lnHelper(DecimalFloat memory a, uint PRECISION, uint STEPS) private returns (DecimalFloat memory) {}
     function lnRecursion(DecimalFloat memory a, DecimalFloat memory two_y_plus_x, uint recursionStep, uint PRECISION, uint MAX_STEPS) private returns (DecimalFloat memory) {}
     function ln10(uint PRECISION, uint STEPS) private returns (DecimalFloat memory) {}
-    function normalize(DecimalFloat memory a, uint PRECISION, bool rounded) external returns (DecimalFloat memory) {}
+    function normalize(DecimalFloat memory a, uint PRECISION, bool rounded) private returns (DecimalFloat memory) {}
     function round(DecimalFloat memory a, uint PRECISION, bool normalized) external returns (DecimalFloat memory) {}
-    function signedCmp(DecimalFloat memory a, DecimalFloat memory b) private returns (int) {}
-    function addHelper(DecimalFloat memory a, DecimalFloat memory b) private returns (DecimalFloat memory) {}
+    function signedCmp(int a, int b) private pure returns (int) {
+        if (a == b) return 0;
+        if (a < b) return -1;
+        return 1;
+    }
+    function signedMin(int a, int b) private pure returns (int) {
+        if (signedCmp(a, b) == -1) return a;
+        return b;
+    }
+    function addHelper(DecimalFloat memory a, DecimalFloat memory b) private returns (int) {}
 }
