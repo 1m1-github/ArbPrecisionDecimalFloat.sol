@@ -14,4 +14,13 @@ contract TestArbPrecisionDecimalFloat is Test {
         assert(c.c == 11);
         assert(c.q == -1);
     }
+
+    function test_mul() public {
+        uint PRECISION = 10;
+        APDF.DecimalFloat memory a = APDF.DecimalFloat(1, 0);
+        APDF.DecimalFloat memory b = APDF.DecimalFloat(1, -1);
+        APDF.DecimalFloat memory c = APDF.multiply(a, b, PRECISION);
+        assert(c.c == 1);
+        assert(c.q == -1);
+    }
 }
