@@ -12,21 +12,21 @@ library ArbPrecisionDecimalFloat {
     }
     
     // todo memory, calldata?
-    function add(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {
+    function add(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) public pure returns (DecimalFloat memory) {
         int ca = addHelper(a, b);
         int cb = addHelper(b, a);
         int q = signedMin(a.q, b.q);
         DecimalFloat memory out = DecimalFloat(ca + cb, q);
         return normalize(out, PRECISION, false);
     }
-    function negate(DecimalFloat memory a) external pure returns (DecimalFloat memory) {
+    function negate(DecimalFloat memory a) public pure returns (DecimalFloat memory) {
         return DecimalFloat(-a.c, a.q);
     }
-    function multiply(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {
+    function multiply(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) public pure returns (DecimalFloat memory) {
         DecimalFloat memory out = DecimalFloat(a.c * b.c, a.q + b.q);
         return normalize(out, PRECISION, false);
     }
-    function inverse(DecimalFloat memory a, uint PRECISION) external returns (DecimalFloat memory) {
+    function inverse(DecimalFloat memory a, uint PRECISION) public pure returns (DecimalFloat memory) {
         int precision_m_aq = int(PRECISION) - a.q;
         if (precision_m_aq < 0) revert("precision_m_aq < 0");
         
@@ -34,14 +34,32 @@ library ArbPrecisionDecimalFloat {
         DecimalFloat memory out = DecimalFloat(precision_m_aq / a.c, -int(PRECISION));
         return normalize(out, PRECISION, false);
     }
-    function exp(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {
-        
+    function exp(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {
+        DecimalFloat memory out = DecimalFloat(1, 0);
+
+        if (a.c == 0) return out;
+
+        DecimalFloat memory factorial_inv;
+        DecimalFloat memory a_power = DecimalFloat(1, 0);
+        DecimalFloat memory factorial = DecimalFloat(1, 0);
+        DecimalFloat memory factorial_next = DecimalFloat(0, 0);
+
+        for (uint i = 0; i < STEPS; i++) {
+            a_power = multiply(a_power, a, PRECISION);
+            factorial_next = add(factorial_next, DecimalFloat(1, 0), PRECISION);
+            factorial = multiply(factorial, factorial_next, PRECISION);
+            factorial_inv = inverse(factorial, PRECISION);
+            factorial_inv = multiply(factorial_inv, a_power, PRECISION);
+            out = add(out, factorial_inv, PRECISION);
+        }
+
+        return out;
     }
-    function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
-    function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
-    function lnHelper(DecimalFloat memory a, uint PRECISION, uint STEPS) private returns (DecimalFloat memory) {}
-    function lnRecursion(DecimalFloat memory a, DecimalFloat memory two_y_plus_x, uint recursionStep, uint PRECISION, uint MAX_STEPS) private returns (DecimalFloat memory) {}
-    function ln10(uint PRECISION, uint STEPS) private returns (DecimalFloat memory) {}
+    function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {}
+    function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {}
+    function lnHelper(DecimalFloat memory a, uint PRECISION, uint STEPS) private pure returns (DecimalFloat memory) {}
+    function lnRecursion(DecimalFloat memory a, DecimalFloat memory two_y_plus_x, uint recursionStep, uint PRECISION, uint MAX_STEPS) private pure  returns (DecimalFloat memory) {}
+    function ln10(uint PRECISION, uint STEPS) private pure  returns (DecimalFloat memory) {}
     function find_num_trailing_zeros_signed_DECIMAL256(int a) private pure returns (int p, int ten_power) {
         int b = a;
         if (b < 0) b = -b;
@@ -59,7 +77,7 @@ library ArbPrecisionDecimalFloat {
         }
         ten_power /= 10;
     }
-    function normalize(DecimalFloat memory a, uint PRECISION, bool rounded) private returns (DecimalFloat memory) {
+    function normalize(DecimalFloat memory a, uint PRECISION, bool rounded) private pure  returns (DecimalFloat memory) {
         (int p, int ten_power) = find_num_trailing_zeros_signed_DECIMAL256(a.c);
         int out_c = a.c / ten_power;
         int out_q;
@@ -68,7 +86,7 @@ library ArbPrecisionDecimalFloat {
         if (rounded) return out;
         return round(out, PRECISION, true);
     }
-    function round(DecimalFloat memory a, uint PRECISION, bool normalized) private returns (DecimalFloat memory) {
+    function round(DecimalFloat memory a, uint PRECISION, bool normalized) private pure  returns (DecimalFloat memory) {
         int shift = a.q + int(PRECISION);
         if (signedCmp(shift, 0) == 1 || signedCmp(shift, a.q) == -1) {
             if (normalized) return DecimalFloat(a.c, a.q);
