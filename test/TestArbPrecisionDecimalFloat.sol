@@ -23,4 +23,12 @@ contract TestArbPrecisionDecimalFloat is Test {
         assert(c.c == 1);
         assert(c.q == -1);
     }
+
+    function test_inv() public {
+        uint PRECISION = 10;
+        APDF.DecimalFloat memory a = APDF.DecimalFloat(2, 0);
+        APDF.DecimalFloat memory b = APDF.inverse(a, PRECISION);
+        assert(b.c == 5);
+        assert(b.q == -1);
+    }
 }
