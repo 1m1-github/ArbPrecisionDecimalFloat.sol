@@ -23,8 +23,8 @@ library ArbPrecisionDecimalFloat {
         return DecimalFloat(-a.c, a.q);
     }
     function multiply(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) external returns (DecimalFloat memory) {
-        // DecimalFloat memory out = DecimalFloat(ca + cb, q);
-        // return normalize(out, PRECISION, false);
+        DecimalFloat memory out = DecimalFloat(a.c * b.c, a.q + b.q);
+        return normalize(out, PRECISION, false);
     }
     function inverse(DecimalFloat memory a, uint PRECISION) external returns (DecimalFloat memory) {}
     function exp(DecimalFloat memory a, uint PRECISION, uint STEPS) external returns (DecimalFloat memory) {}
