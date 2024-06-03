@@ -40,4 +40,13 @@ contract TestArbPrecisionDecimalFloat is Test {
         assert(b.c / 1e10 == 27182818284);
         assert(b.q + 10 == -10);
     }
+
+    function test_ln() public pure {
+        uint PRECISION = 20;
+        uint STEPS = 15;
+        APDF.DecimalFloat memory a = APDF.DecimalFloat(2, 0);
+        APDF.DecimalFloat memory b = APDF.ln(a, PRECISION, STEPS);
+        assert(b.c / 1e10 == 6931471805);
+        assert(b.q + 10 == -10);
+    }
 }
