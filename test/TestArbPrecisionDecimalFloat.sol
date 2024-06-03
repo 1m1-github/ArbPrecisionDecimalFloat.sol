@@ -31,4 +31,15 @@ contract TestArbPrecisionDecimalFloat is Test {
         assert(b.c == 5);
         assert(b.q == -1);
     }
+
+    function test_exp() public {
+        uint PRECISION = 10;
+        uint STEPS = 10;
+        APDF.DecimalFloat memory a = APDF.DecimalFloat(1, 0);
+        APDF.DecimalFloat memory b = APDF.exp(a, PRECISION, STEPS);
+        console2.log("b.c", b.c);
+        console2.log("b.q", b.q);
+        assert(b.c == 27182818284);
+        assert(b.q == -10);
+    }
 }
