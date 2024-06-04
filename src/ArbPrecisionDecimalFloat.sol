@@ -56,10 +56,70 @@ library ArbPrecisionDecimalFloat {
         return out;
     }
     function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {}
-    function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {}
-    function lnHelper(DecimalFloat memory a, uint PRECISION, uint STEPS) private pure returns (DecimalFloat memory) {}
-    function lnRecursion(DecimalFloat memory a, DecimalFloat memory two_y_plus_x, uint recursionStep, uint PRECISION, uint MAX_STEPS) private pure  returns (DecimalFloat memory) {}
-    function ln10(uint PRECISION, uint STEPS) private pure  returns (DecimalFloat memory) {}
+    function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {
+        if (a.c < 0) revert("a.c < 0");
+        if (a.c == 1 && a.q == 0) return DecimalFloat(0, 1);
+
+        int adjust = 0;
+        for (;;) {
+            if (lessThan(a, DecimalFloat(2, 0), PRECISION)) break; // todo constant
+            a.q -= 1;
+            adjust += 1;
+        }
+        a = add(a, DecimalFloat(-1, 0), PRECISION); // todo constant
+
+        DecimalFloat memory out = lnHelper(a, PRECISION, STEPS);
+        DecimalFloat memory LN10 = ln10(PRECISION, STEPS);
+        DecimalFloat memory adjDecimal = DecimalFloat(adjust, 0);
+        LN10 = multiply(adjDecimal, LN10, PRECISION);
+        out = add(out, LN10, PRECISION);
+
+        return out;
+    }
+    function lessThan(DecimalFloat memory a, DecimalFloat memory b, uint PRECISION) private pure returns (bool) {
+        DecimalFloat memory diff = add(a, negate(b), PRECISION);
+        return diff.c < 0;
+    }
+    function lnHelper(DecimalFloat memory a, uint PRECISION, uint STEPS) private pure returns (DecimalFloat memory) {
+        DecimalFloat memory TWO = DecimalFloat(2, 0);
+        DecimalFloat memory two_y_plus_x = add(a, TWO, PRECISION); // todo constant
+        uint step = 1;
+        DecimalFloat memory out = lnRecursion(a, two_y_plus_x, PRECISION, STEPS, step);
+        out = inverse(out, PRECISION);
+        DecimalFloat memory two_x = multiply(a, TWO, PRECISION);
+        out = multiply(out, two_x, PRECISION);
+        return out;
+    }
+    function lnRecursion(DecimalFloat memory a, DecimalFloat memory two_y_plus_x, uint PRECISION, uint MAX_STEPS, uint step) private pure  returns (DecimalFloat memory) {
+        DecimalFloat memory stepDec = DecimalFloat(int(step), 0);
+        stepDec = multiply(stepDec, DecimalFloat(2, 0), PRECISION);
+        stepDec = add(stepDec, DecimalFloat(-1, 0), PRECISION);
+        DecimalFloat memory out = multiply(stepDec, two_y_plus_x, PRECISION);
+        if (step == MAX_STEPS) return out;
+        step += 1;
+        DecimalFloat memory r = lnRecursion(a, two_y_plus_x, PRECISION, MAX_STEPS, step);
+        step -= 1;
+        r = inverse(r, PRECISION);
+        DecimalFloat memory stepDec2 = DecimalFloat(int(step), 0);
+        stepDec2 = multiply(stepDec2, a, PRECISION);
+        stepDec2 = multiply(stepDec2, stepDec2, PRECISION);
+        r = multiply(stepDec2, r, PRECISION);
+        r = negate(r);
+        out = add(out, r, PRECISION);
+
+        return out;
+    }
+    function ln10(uint PRECISION, uint STEPS) private pure  returns (DecimalFloat memory) {
+        DecimalFloat memory three = DecimalFloat(3, 0);
+        DecimalFloat memory ten = DecimalFloat(10, 0);
+        DecimalFloat memory one_over_four = DecimalFloat(25, -2);
+        DecimalFloat memory three_over_125 = DecimalFloat(24, -3);
+        DecimalFloat memory a = lnHelper(one_over_four, PRECISION, STEPS);
+        DecimalFloat memory b = lnHelper(three_over_125, PRECISION, STEPS);
+        a = multiply(a, ten, PRECISION);
+        b = multiply(b, three, PRECISION);
+        return add(a, b, PRECISION);
+    }
     function find_num_trailing_zeros_signed_DECIMAL256(int a) private pure returns (int p, int ten_power) {
         int b = a;
         if (b < 0) b = -b;
