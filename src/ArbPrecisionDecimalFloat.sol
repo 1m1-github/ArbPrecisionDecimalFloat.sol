@@ -44,7 +44,7 @@ library ArbPrecisionDecimalFloat {
         DecimalFloat memory factorial = DecimalFloat(1, 0);
         DecimalFloat memory factorial_next = DecimalFloat(0, 0);
 
-        for (uint i = 0; i < STEPS; i++) {
+        for (uint i = 1; i < STEPS; i++) {
             a_power = multiply(a_power, a, PRECISION);
             factorial_next = add(factorial_next, DecimalFloat(1, 0), PRECISION);
             factorial = multiply(factorial, factorial_next, PRECISION);
@@ -55,7 +55,38 @@ library ArbPrecisionDecimalFloat {
 
         return out;
     }
-    function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {}
+    function sin(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {
+        DecimalFloat memory out = DecimalFloat(a.c, a.q);
+
+        if (a.c == 0 || STEPS == 1) return out;
+
+        DecimalFloat memory ONE = DecimalFloat(1, 0);
+
+        DecimalFloat memory factorial_inv;
+        DecimalFloat memory a_squared = multiply(a, a, PRECISION);
+        DecimalFloat memory a_power = DecimalFloat(1, 0);
+        DecimalFloat memory factorial = DecimalFloat(1, 0);
+        DecimalFloat memory factorial_next = DecimalFloat(1, 0);
+        bool negated = true;
+
+        for (uint i = 1; i < STEPS; i++) {
+            a_power = multiply(a_power, a_squared, PRECISION);
+            
+            factorial_next = add(factorial_next, ONE, PRECISION);
+            factorial = multiply(factorial, factorial_next, PRECISION);
+            factorial_next = add(factorial_next, ONE, PRECISION);
+            factorial = multiply(factorial, factorial_next, PRECISION);
+
+            factorial_inv = inverse(factorial, PRECISION);
+            factorial_inv = multiply(factorial_inv, a_power, PRECISION);
+            if (negated) factorial_inv = negate(factorial_inv);
+            negated = !negated;
+
+            out = add(out, factorial_inv, PRECISION);
+        }
+
+        return out;
+    }
     function ln(DecimalFloat memory a, uint PRECISION, uint STEPS) public pure returns (DecimalFloat memory) {
         if (a.c < 0) revert("a.c < 0");
         if (a.c == 1 && a.q == 0) return DecimalFloat(0, 1);
