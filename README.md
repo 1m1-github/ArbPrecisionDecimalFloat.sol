@@ -1,4 +1,4 @@
-https://github.com/1m1-github/EVMPlus/tree/main/core/vm as a Solidity lib
+https://github.com/1m1-github/EVMPlus/tree/main/core/vm/decimal_float.go as a Solidity lib
 
 `forge test`:
 [PASS] test_add() (gas: 7167)
