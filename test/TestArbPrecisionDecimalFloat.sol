@@ -49,4 +49,13 @@ contract TestArbPrecisionDecimalFloat is Test {
         assert(b.c / 1e10 == 6931471805);
         assert(b.q + 10 == -10);
     }
+
+    function test_sin() public pure {
+        uint PRECISION = 20;
+        uint STEPS = 15;
+        APDF.DecimalFloat memory a = APDF.DecimalFloat(1, 0);
+        APDF.DecimalFloat memory b = APDF.sin(a, PRECISION, STEPS);
+        assert(b.c / 1e10 == 8414709848);
+        assert(b.q + 10 == -10);
+    }
 }
